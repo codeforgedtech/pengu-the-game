@@ -40,8 +40,11 @@ class _FallingObjectsGameState extends State<FallingObjectsGame> {
   bool gameOver = false;
   bool isPaused = false;
   String playerDirection = 'right';
-
   Timer? _gameTimer;
+  Timer? _moveTimer; // Ny timer för rörelse
+  double _playerSpeed = 0.01; // Normal hastighet
+  double _speedIncrease = 0.005;
+
   double _minObjectFallSpeed = 0.002;
   double _maxObjectFallSpeed = 0.005;
   int _maxObjects = 2;
@@ -206,7 +209,30 @@ class _FallingObjectsGameState extends State<FallingObjectsGame> {
       }
     }
   }
+  void _movePlayer(double direction) {
+    setState(() {
+      playerX += direction;
+      if (playerX < -1) {
+        playerX = -1;
+      } else if (playerX > 1) {
+        playerX = 1;
+      }
+    });
+  }
+ void _startMoving(double direction) {
+    _movePlayer(direction);  // Gör en initial rörelse omedelbart
+    _moveTimer = Timer.periodic(Duration(milliseconds: 16), (timer) {
+      _movePlayer(direction);
+    });
+  }
 
+  // Stoppa rörelsen när knappen släpps
+  void _stopMoving() {
+    if (_moveTimer != null) {
+      _moveTimer!.cancel();
+      _moveTimer = null;
+    }
+  }
   void _spawnNewObjects() {
     if (fallingObjects.length < _maxObjects) {
       for (int i = fallingObjects.length; i < _maxObjects; i++) {
@@ -414,46 +440,56 @@ class _FallingObjectsGameState extends State<FallingObjectsGame> {
           ),
         ],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+     floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: Stack(
         children: [
+          // Vänster knapp
           Positioned(
             bottom: 40,
             left: 20,
-            child: FloatingActionButton(
-              backgroundColor: Colors.blue,
-              onPressed: () {
-                setState(() {
-                  playerX -= 0.1;
-                  if (playerX < -1) {
-                    playerX = -1;
-                  }
-                  playerDirection = 'left';
-                });
+            child: GestureDetector(
+              onTapDown: (_) {
+                _startMoving(-_playerSpeed - _speedIncrease); // Flytta vänster
+                playerDirection = 'left';
               },
-              child: Icon(
-                Icons.arrow_left,
-                size: 50,
+              onTapUp: (_) {
+                _stopMoving(); // Stoppa rörelsen
+              },
+              onTapCancel: () {
+                _stopMoving(); // Stoppa rörelsen om användaren drar fingret från knappen
+              },
+              child: FloatingActionButton(
+                backgroundColor: Colors.blue,
+                onPressed: null, // Tom eftersom vi använder GestureDetector
+                child: Icon(
+                  Icons.arrow_left,
+                  size: 50,
+                ),
               ),
             ),
           ),
+          // Höger knapp
           Positioned(
             bottom: 40,
             right: 20,
-            child: FloatingActionButton(
-              backgroundColor: Colors.blue,
-              onPressed: () {
-                setState(() {
-                  playerX += 0.1;
-                  if (playerX > 1) {
-                    playerX = 1;
-                  }
-                  playerDirection = 'right';
-                });
+            child: GestureDetector(
+              onTapDown: (_) {
+                _startMoving(_playerSpeed + _speedIncrease); // Flytta höger
+                playerDirection = 'right';
               },
-              child: Icon(
-                Icons.arrow_right,
-                size: 50,
+              onTapUp: (_) {
+                _stopMoving(); // Stoppa rörelsen
+              },
+              onTapCancel: () {
+                _stopMoving(); // Stoppa rörelsen om användaren drar fingret från knappen
+              },
+              child: FloatingActionButton(
+                backgroundColor: Colors.blue,
+                onPressed: null, // Tom eftersom vi använder GestureDetector
+                child: Icon(
+                  Icons.arrow_right,
+                  size: 50,
+                ),
               ),
             ),
           ),
@@ -465,8 +501,9 @@ class _FallingObjectsGameState extends State<FallingObjectsGame> {
   @override
   void dispose() {
     _gameTimer?.cancel();
+    _moveTimer?.cancel();  // Avsluta flytt-timer när spelet avslutas
     _audioPlayer.dispose();
-    _backgroundPlayer.dispose(); // Stäng av bakgrundsmusiken
+    _backgroundPlayer.dispose();
     super.dispose();
   }
 }
