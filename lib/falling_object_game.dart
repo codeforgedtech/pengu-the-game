@@ -209,16 +209,20 @@ class _FallingObjectsGameState extends State<FallingObjectsGame> {
       }
     }
   }
-  void _movePlayer(double direction) {
-    setState(() {
-      playerX += direction;
-      if (playerX < -1) {
-        playerX = -1;
-      } else if (playerX > 1) {
-        playerX = 1;
-      }
-    });
-  }
+void _movePlayer(double direction) {
+  setState(() {
+    double playerHalfWidth = (93 / MediaQuery.of(context).size.width) / 2;
+
+    playerX += direction;
+
+    // Se till att hela Pengu kan nå kanten
+    if (playerX < -1) {
+      playerX = -1; // Stoppa vänster rörelse vid skärmens vänstra kant
+    } else if (playerX > 1) {
+      playerX = 1; // Stoppa höger rörelse vid skärmens högra kant
+    }
+  });
+}
  void _startMoving(double direction) {
     _movePlayer(direction);  // Gör en initial rörelse omedelbart
     _moveTimer = Timer.periodic(Duration(milliseconds: 16), (timer) {
