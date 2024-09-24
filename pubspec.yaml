@@ -65,9 +65,11 @@ flutter:
     - assets/left.png
     - assets/floor.png
     - assets/boll.png
+    - assets/logo.png
     - assets/click.mp3
     - assets/coin.mp3
     - assets/hurt.mp3
+    - assets/ball.mp3
     - assets/backgrund.mp3
   fonts:
     - family: PatrickHand

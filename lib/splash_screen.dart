@@ -375,31 +375,14 @@ class _SplashScreenState extends State<SplashScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Image.asset(
-                  'assets/player.png',
-                  height: 150,
-                  width: 150,
-                ),
-                SizedBox(height: 40),
-                Text(
-                  'Pengu the Game',
-                  style: TextStyle(
-                    fontFamily: 'PatrickHand',
-                    fontSize: 48,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    shadows: [
-                      Shadow(
-                        blurRadius: 10,
-                        color: Colors.black,
-                        offset: Offset(2, 2),
-                      ),
-                    ],
-                  ),
+                  'assets/logo.png',
+                  height: 258,
+                  width: 350,
                 ),
                 SizedBox(height: 40),
                 buildHoverText(
                   'Easy',
-                  Colors.green,
+                  Colors.black,
                   () {
                     navigateToGame('easy');
                   },
@@ -407,7 +390,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 SizedBox(height: 20),
                 buildHoverText(
                   'Medium',
-                  Colors.orange,
+                  Colors.black,
                   () {
                     navigateToGame('medium');
                   },
@@ -415,7 +398,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 SizedBox(height: 20),
                 buildHoverText(
                   'Hard',
-                  Colors.red,
+                  Colors.black,
                   () {
                     navigateToGame('hard');
                   },
