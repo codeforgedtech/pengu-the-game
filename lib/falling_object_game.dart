@@ -259,7 +259,7 @@ void _handleFallingObjects() {
 
 
 void _checkCollisions() {
-  if (isPaused) return;  // Gör inget om spelet är pausat
+  if (isPaused) return;
 
   double screenWidth = MediaQuery.of(context).size.width;
   double screenHeight = MediaQuery.of(context).size.height;
@@ -284,17 +284,19 @@ void _checkCollisions() {
     bool collisionX = playerRight > objectLeft && playerLeft < objectRight;
     bool collisionY = playerBottom > objectTop && playerTop < objectBottom;
 
-     if (collisionX && collisionY) {
-      if (object.type == 'cola') {
+    if (collisionX && collisionY) {
+      if (object.type == 'flaska') {
+        lives++; // Lägg till ett liv
+      } else if (object.type == 'cola') {
         score += 10;
       } else if (object.type == 'broccoli') {
         if (!inBonusLevel) {
           score -= broccoliPenalty;
         }
-      } else if (object.type == 'ball') { // Handle the ball case
+      } else if (object.type == 'ball') {
         ballCount++;
         if (ballCount >= 3) {
-          _startBonusLevel(); // Start bonus level after collecting 3 balls
+          _startBonusLevel();
         }
       }
 
@@ -357,16 +359,16 @@ void _spawnNewObjects() {
 
       String type;
 
-      // Om vi är i bonusnivå, skapa endast cola-burkar
       if (inBonusLevel) {
-        type = 'cola'; // Endast cola-burkar i bonusnivå
+        type = 'cola'; // Endast cola i bonusnivå
       } else {
-        // Annars, skapa cola-burkar och broccoli, med en liten chans för bollar
         double chance = Random().nextDouble();
         if (chance < 0.05) {
-          type = 'ball'; // 5% chans för bollar
+          type = 'ball'; // 5% chans för boll
+        } else if (chance < 0.15) {
+          type = 'flaska'; // 10% chans för flaska
         } else {
-          type = Random().nextBool() ? 'cola' : 'broccoli'; // 50% chans för cola eller broccoli
+          type = Random().nextBool() ? 'cola' : 'broccoli'; // 50% cola eller broccoli
         }
       }
 
@@ -490,7 +492,7 @@ Widget build(BuildContext context) {
         Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.blue[200]!, Colors.blue[700]!],
+              colors: [Colors.blue[700]!, Colors.white],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -514,7 +516,7 @@ Widget build(BuildContext context) {
           child: Image.asset(
             'assets/floor.png',
             fit: BoxFit.cover,
-            height: 100,
+            height: 315,
           ),
         ),
         // Fallande objekt
@@ -524,13 +526,16 @@ Widget build(BuildContext context) {
             child: Transform.rotate(
               angle: object.rotation,
               child: Image.asset(
-                object.type == 'cola'
-                    ? 'assets/cola.png'
-                    : object.type == 'broccoli'
-                        ? 'assets/brocoli.png'
-                        : 'assets/boll.png', // Lägg till stöd för bollar här
-                height: 50,
-                width: 30,
+        object.type == 'cola'
+            ? 'assets/cola.png'
+            : object.type == 'broccoli'
+                ? 'assets/brocoli.png'
+                : object.type == 'flaska'
+                    ? 'assets/flaska.png' // Lägg till stöd för flaskor här
+                    : 'assets/boll.png', // För bollar
+         height: object.type == 'cola' ? 40 : 50, // Justera colaburkar till en mindre höjd
+        width: object.type == 'cola' ? 25 : 30, // Justera colaburkar till en mindre bredd
+        
               ),
             ),
           );

@@ -61,6 +61,7 @@ flutter:
     - assets/player.png
     - assets/cola.png
     - assets/brocoli.png
+    - assets/flaska.png
     - assets/right.png
     - assets/left.png
     - assets/floor.png
