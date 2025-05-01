@@ -19,35 +19,38 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _scaleAnimation;
   bool _showMenu = false;
 
-  @override
- void initState() {
+@override
+void initState() {
   super.initState();
   _loadSettings();
-  
-  // Minska duration för att göra animationen snabbare
-  _animationController =
-      AnimationController(vsync: this, duration: Duration(seconds: 4));  // Snabbare tid
 
-  _rotationAnimation = Tween<double>(begin: 0, end: 2 * 3.14159).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.linear));
-  _scaleAnimation =
-      Tween<double>(begin: 0.2, end: 1.0).animate(_animationController);
+  _animationController = AnimationController(
+    vsync: this,
+    duration: Duration(seconds: 4),
+  );
 
-  _animationController.repeat(); // Start rotation and scaling
+  _rotationAnimation = Tween<double>(begin: 0, end: 2 * 3.14159) // Ett varv
+      .animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
 
-  // Vänta tills animationen når sitt största mått
-  Future.delayed(Duration(seconds: 4), () {  // Anpassa för snabbare tid
-    // Pausa animationen när den har nått sitt största mått
-    _animationController.stop();
-    
-    // Vänta i 1 sekund innan vi slungas vidare till menyn
-    Future.delayed(Duration(seconds: 3), () {  // Snabbare fördröjning
+  _scaleAnimation = Tween<double>(begin: 0.2, end: 1.0).animate(_animationController);
+
+  _animationController.forward(); // Starta animationen (ej repeat)
+
+  Future.delayed(Duration(seconds: 4), () {
+    // När animationen är klar, stoppa den och sätt rotation till 0
+    setState(() {
+      _animationController.stop();
+      _rotationAnimation = AlwaysStoppedAnimation(0); // Nollställ rotationen
+    });
+
+    Future.delayed(Duration(seconds: 3), () {
       setState(() {
         _showMenu = true;
       });
     });
   });
 }
+
 
   @override
   void dispose() {
@@ -409,7 +412,11 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
   }
-
+void _skipIntro() {
+    setState(() {
+      _showMenu = true;
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -419,151 +426,159 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-Widget buildLoadingScreen() {
-  return Scaffold(
-    body: Center(
-      child: Container(
-        // Använd en `BoxDecoration` för att sätta bakgrund
+  Widget buildLoadingScreen() {
+    return Scaffold(
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/floor.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+          Center(
+            child: AnimatedBuilder(
+              animation: _animationController,
+              builder: (context, child) {
+                return Transform(
+                  transform: Matrix4.identity()
+                    ..scale(_scaleAnimation.value)
+                    ..rotateZ(_rotationAnimation.value),
+                  alignment: Alignment.center,
+                  child: Image.asset(
+                    'assets/newspaper.png',
+                    height: MediaQuery.of(context).size.height * 0.8,
+                    width: MediaQuery.of(context).size.width * 0.8,
+                  ),
+                );
+              },
+            ),
+          ),
+          Positioned(
+            bottom: 30,
+            right: 30,
+            child: ElevatedButton(
+              onPressed: _skipIntro,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.blue,
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                textStyle: TextStyle(
+                  fontFamily: 'PatrickHand',
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              child: Text('Skip Intro'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  Widget buildMenu() {
+  return Stack(
+    children: [
+      // Bakgrund med gradient
+      Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.blue[300]!, Colors.blue[700]!], // Gradient från ljusblått till mörkblått
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            colors: [Colors.blue[200]!, Colors.blue[700]!],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
-          // Om du vill lägga till en skugga på bakgrunden
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.3),
-              spreadRadius: 5,
-              blurRadius: 15,
-              offset: Offset(0, 10),
+        ),
+      ),
+
+      // Centrala menyinnehållet
+      Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/logo.png',
+              height: 258,
+              width: 350,
+            ),
+            SizedBox(height: 40),
+            buildHoverText(
+              'Easy',
+              Colors.black,
+              () {
+                navigateToGame('easy');
+              },
+            ),
+            SizedBox(height: 20),
+            buildHoverText(
+              'Medium',
+              Colors.black,
+              () {
+                navigateToGame('medium');
+              },
+            ),
+            SizedBox(height: 20),
+            buildHoverText(
+              'Hard',
+              Colors.black,
+              () {
+                navigateToGame('hard');
+              },
+            ),
+            SizedBox(height: 40),
+            ElevatedButton(
+              onPressed: _showInstructions,
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.blue,
+                backgroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                textStyle: TextStyle(
+                  fontFamily: 'PatrickHand',
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              child: Text('How to Play'),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _showSettings,
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.blue,
+                backgroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                textStyle: TextStyle(
+                  fontFamily: 'PatrickHand',
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              child: Text('Settings'),
             ),
           ],
         ),
-        // Säkerställer att bakgrunden täcker hela skärmen
-        width: double.infinity,
-        height: double.infinity,
-        child: AnimatedBuilder(
-          animation: _animationController,
-          builder: (context, child) {
-            // Om animationen är klar (rotationen ska bara vara pågående under animationen)
-            if (_animationController.isCompleted) {
-              // Stänger av rotation när animationen är klar
-              return Transform(
-                transform: Matrix4.identity()..scale(_scaleAnimation.value),
-                alignment: Alignment.center,
-                child: Image.asset(
-                  'assets/newspaper.png', // Lägg till din tidningsbild här
-                  height: MediaQuery.of(context).size.height * 0.8, // Tidningsbilden ska ta 80% av höjden
-                  width: MediaQuery.of(context).size.width * 0.8,   // Tidningsbilden ska ta 80% av bredden
-                ),
-              );
-            } else {
-              // Under animationen, applicera både rotation och skalning
-              return Transform(
-                transform: Matrix4.identity()
-                  ..scale(_scaleAnimation.value)
-                  ..rotateZ(_rotationAnimation.value),
-                alignment: Alignment.center,
-                child: Image.asset(
-                  'assets/newspaper.png', // Lägg till din tidningsbild här
-                  height: MediaQuery.of(context).size.height * 0.8, // Tidningsbilden ska ta 90% av höjden
-                  width: MediaQuery.of(context).size.width * 0.8,   // Tidningsbilden ska ta 90% av bredden
-                ),
-              );
-            }
-          },
-        ),
       ),
-    ),
-  );
-}
 
-
-
-  Widget buildMenu() {
-    return Stack(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blue[200]!, Colors.blue[700]!],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+      // Versionsnummer längst ner på skärmen
+      Positioned(
+        bottom: 20, // Justera detta om du vill flytta texten upp eller ner
+        left: 0,
+        right: 0,
+        child: Center(
+          child: Text(
+            'Version 1.0.0+2',  // Uppdatera versionsnumret vid behov
+            style: TextStyle(
+              fontFamily: 'PatrickHand',
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.white.withOpacity(0.7), // Halvgenomskinlig text
             ),
           ),
         ),
-        Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset(
-                'assets/logo.png',
-                height: 258,
-                width: 350,
-              ),
-              SizedBox(height: 40),
-              buildHoverText(
-                'Easy',
-                Colors.black,
-                () {
-                  navigateToGame('easy');
-                },
-              ),
-              SizedBox(height: 20),
-              buildHoverText(
-                'Medium',
-                Colors.black,
-                () {
-                  navigateToGame('medium');
-                },
-              ),
-              SizedBox(height: 20),
-              buildHoverText(
-                'Hard',
-                Colors.black,
-                () {
-                  navigateToGame('hard');
-                },
-              ),
-              SizedBox(height: 40),
-              ElevatedButton(
-                onPressed: _showInstructions,
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.blue,
-                  backgroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  textStyle: TextStyle(
-                    fontFamily: 'PatrickHand',
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                child: Text('How to Play'),
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _showSettings,
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.blue,
-                  backgroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  textStyle: TextStyle(
-                    fontFamily: 'PatrickHand',
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                child: Text('Settings'),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
 }
-
+    }
 
 
 

@@ -18,11 +18,11 @@ tasks.register("clean", Delete) {
 }
 buildscript {
     repositories {
-        google()  // Gör så att du kan hämta Android Gradle Plugin från Google
-        mavenCentral()  // Maven repository
+        google()
+        mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.0.0' 
-          classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.10" // Byt ut till en version som är tillgänglig
+        // Update to a compatible version of the Android Gradle Plugin
+        classpath 'com.android.tools.build:gradle:8.2.2'  // or higher
     }
 }
